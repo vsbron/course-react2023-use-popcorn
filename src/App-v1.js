@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const tempMovieData = [
   {
@@ -23,6 +23,7 @@ const tempMovieData = [
       "https://m.media-amazon.com/images/M/MV5BYWZjMjk3ZTItODQ2ZC00NTY5LWE0ZDYtZTI3MjcwN2Q5NTVkXkEyXkFqcGdeQXVyODk4OTc3MTY@._V1_SX300.jpg",
   },
 ];
+
 const tempWatchedData = [
   {
     imdbID: "tt1375666",
@@ -46,35 +47,13 @@ const tempWatchedData = [
   },
 ];
 
-// Calculate average helper function
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
-// API Key for OMDB
-const KEY = "f52e54eb";
-const query = "Interstellar"
-
 export default function App() {
-  // State variables for movie lists
   const [movies, setMovies] = useState(tempMovieData);
   const [watched, setWatched] = useState(tempWatchedData);
 
-  // State for loading animation
-  const [isLoading, setIsLoading] = useState(false);
-
-  // useEffect hook that fetches the movie search results after initial render
-  useEffect(() => {
-    async function fetchMovies() {
-      setIsLoading(true); // Enable loading animation
-      const res = await fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=${query}`);
-      const data = await res.json();
-      setMovies(data.Search); 
-      setIsLoading(false); // Disable loading animation
-    }
-    fetchMovies();
-  }, []);
-
-  // Main component tree
   return (
     <>
       <NavBar>
@@ -83,7 +62,7 @@ export default function App() {
       </NavBar>
       <Main>
         <Box>
-          {isLoading ? <Loader /> : <MovieList movies={movies} />}
+          <MovieList movies={movies} />
         </Box>
         <Box>
           <WatchedSummary watched={watched} />
@@ -94,12 +73,6 @@ export default function App() {
   );
 }
 
-// Loader component gthat displays the Loading message when movie list is fetching
-function Loader (){
-  return <p className="loader">Loading...</p>
-}
-
-// Navbar component that displays the logo and the components that are passed as arguments
 function NavBar({ children }) {
   return (
     <nav className="nav-bar">
@@ -109,7 +82,6 @@ function NavBar({ children }) {
   );
 }
 
-// Logo component that displays an image and the h1
 function Logo() {
   return (
     <div className="logo">
@@ -119,12 +91,9 @@ function Logo() {
   );
 }
 
-// Search component that displays the searchbar
 function Search() {
-  // State for the input value
   const [query, setQuery] = useState("");
 
-  // Returns controlled input element
   return (
     <input
       className="search"
@@ -136,7 +105,6 @@ function Search() {
   );
 }
 
-// NumResults component that displays the number of movies found in the search
 function NumResults({ movies }) {
   return (
     <p className="num-results">
@@ -145,14 +113,11 @@ function NumResults({ movies }) {
   );
 }
 
-// Main component with the main grid container
 function Main({ children }) {
   return <main className="main">{children}</main>;
 }
 
-// Box component that holds a container for the main grid container
 function Box({ children }) {
-  // State for whether the box is expanded or collapsed
   const [isOpen, setIsOpen] = useState(true);
 
   return (
@@ -165,7 +130,6 @@ function Box({ children }) {
   );
 }
 
-// MovieList component that lists all the found movies from the state
 function MovieList({ movies }) {
   return (
     <ul className="list">
@@ -176,7 +140,6 @@ function MovieList({ movies }) {
   );
 }
 
-// Movie component that writes down all the movie details as list item in search results area
 function Movie({ movie }) {
   return (
     <li>
@@ -192,9 +155,7 @@ function Movie({ movie }) {
   );
 }
 
-// Watched Summary conponent that displays the legend for the watched movie list
 function WatchedSummary({ watched }) {
-  // Average variables from the various data from movie state variable
   const avgImdbRating = average(watched.map((movie) => movie.imdbRating));
   const avgUserRating = average(watched.map((movie) => movie.userRating));
   const avgRuntime = average(watched.map((movie) => movie.runtime));
@@ -224,7 +185,6 @@ function WatchedSummary({ watched }) {
   );
 }
 
-// WatchedMovieList component that lists all the watched movies from the state
 function WatchedMovieList({ watched }) {
   return (
     <ul className="list">
@@ -235,7 +195,6 @@ function WatchedMovieList({ watched }) {
   );
 }
 
-// Movie component that writes down all the movie details as list item in watched movies area
 function WatchedMovie({ movie }) {
   return (
     <li>
