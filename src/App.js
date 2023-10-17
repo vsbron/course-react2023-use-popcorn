@@ -52,7 +52,7 @@ const average = (arr) =>
 
 // API Key for OMDB
 const KEY = "f52e54eb";
-const query = "Interstellar"
+const query = "Interstellar";
 
 export default function App() {
   // State variables for movie lists
@@ -62,14 +62,41 @@ export default function App() {
   // State for loading animation
   const [isLoading, setIsLoading] = useState(false);
 
+  // State for fetching error
+  const [error, setError] = useState("");
+
   // useEffect hook that fetches the movie search results after initial render
   useEffect(() => {
     async function fetchMovies() {
-      setIsLoading(true); // Enable loading animation
-      const res = await fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=${query}`);
-      const data = await res.json();
-      setMovies(data.Search); 
-      setIsLoading(false); // Disable loading animation
+      try {
+        setIsLoading(true); // Enable loading animation
+
+        // Getting the data from API
+        const res = await fetch(
+          `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`
+        );
+
+        // Checking if we got a response, throwing error if not
+        if (!res.ok)
+          throw new Error("Something went wrong with fetching movies");
+
+        // Converting the received data to json
+        const data = await res.json();
+
+        // Checking whether there are movies returned, throwing error if not
+        if (data.Response === "False") throw new Error("Movie not found!");
+
+        // Setting the movies state array
+        setMovies(data.Search);
+
+        // Catching errors
+      } catch (err) {
+        setError(err.message);
+
+        // Code that executes at the end of fetching with either result
+      } finally {
+        setIsLoading(false); // Disable loading animation
+      }
     }
     fetchMovies();
   }, []);
@@ -83,7 +110,14 @@ export default function App() {
       </NavBar>
       <Main>
         <Box>
-          {isLoading ? <Loader /> : <MovieList movies={movies} />}
+          {/* If data is loading -> Display loader */}
+          {isLoading && <Loader />}
+
+          {/* If data is not loading and there's no error -> Display the movie list */}
+          {!isLoading && !error && <MovieList movies={movies} />}
+
+          {/* If there's an error - Display error message */}
+          {error && <ErrorMessage error={error} />}
         </Box>
         <Box>
           <WatchedSummary watched={watched} />
@@ -94,9 +128,18 @@ export default function App() {
   );
 }
 
-// Loader component gthat displays the Loading message when movie list is fetching
-function Loader (){
-  return <p className="loader">Loading...</p>
+// Loader component that displays the Loading message when movie list is fetching
+function Loader() {
+  return <p className="loader">Loading...</p>;
+}
+
+// Loader component that displays an error message if with passed text
+function ErrorMessage({ message }) {
+  return (
+    <p className="error">
+      <span>⛔</span> message
+    </p>
+  );
 }
 
 // Navbar component that displays the logo and the components that are passed as arguments
