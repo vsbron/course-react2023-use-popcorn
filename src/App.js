@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import StarRating from "./StarRating";
 
 const tempMovieData = [
   {
@@ -81,7 +82,7 @@ export default function App() {
 
         // Getting the data from API
         const res = await fetch(
-          `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`
+          `https://www.omdbapi.com/?apikey=${KEY}&s=${query}`
         );
 
         // Checking if we got a response, throwing error if not
@@ -114,7 +115,10 @@ export default function App() {
       return;
     }
 
+    // Calling the function
     fetchMovies();
+
+    // Passing the query to the dependency array
   }, [query]);
 
   // Main component tree
@@ -262,13 +266,107 @@ function Movie({ movie, onSelectMovie }) {
 
 // Movie details component that lists all the info about the selected movie
 function MovieDetails({ selectedId, onCloseMovie }) {
+  const [movie, setMovie] = useState({}); // State for the selected movie
+  const [isLoading, setIsLoading] = useState(false); // State for loading animation
+  const [error, setError] = useState(""); // State for fetching error
+
+  // Destructuring the selected movie and renaming it's properties
+  const {
+    Title: title,
+    Year: year,
+    Poster: poster,
+    Runtime: runtime,
+    imdbRating,
+    Plot: plot,
+    Released: released,
+    Actors: actors,
+    Director: director,
+    Genre: genre,
+  } = movie;
+
+  // useEffect that is fetching the selected movie details
+  useEffect(() => {
+    async function getMovieDetails() {
+      try {
+        setIsLoading(true); // Enable loading animation
+        setError(""); // Resetting the error
+
+        // Getting the movie data from API
+        const res = await fetch(
+          `https://www.omdbapi.com/?apikey=${KEY}&i=${selectedId}`
+        );
+
+        // Checking if we got a response, throwing error if not
+        if (!res.ok)
+          throw new Error(
+            "Something went wrong with getting the movie details"
+          );
+
+        // Converting the received data to json
+        const data = await res.json();
+
+        // Checking whether there are movies returned, throwing error if not
+        if (data.Response === "False") throw new Error("Movie not found!");
+
+        // Setting the state of selecting movie
+        setMovie(data);
+
+        // Catching errors
+      } catch (err) {
+        setError(err.message);
+
+        // Code that executes at the end of fetching with either result
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    // Calling the function
+    getMovieDetails();
+
+    // Passing the selectedId to the dependency array
+  }, [selectedId]);
   return (
     <div className="details">
-      {/* Button that resets the selected movie ID */}
-      <button className="btn-back" onClick={onCloseMovie}>
-        &larr;
-      </button>
-      {selectedId}
+      {/* If data is loading -> Display loader */}
+      {isLoading && <Loader />}
+
+      {/* If data is not loading and there's no error -> Display the movie details */}
+      {!isLoading && !error && (
+        <>
+          <header>
+            {/* Button that resets the selected movie ID */}
+            <button className="btn-back" onClick={onCloseMovie}>
+              &larr;
+            </button>
+            <img src={poster} alt={`Poster of ${movie} movie`} />
+            <div className="details-overview">
+              <h2>{title}</h2>
+              <p>
+                {released} &bull; {runtime}
+              </p>
+              <p>{genre}</p>
+              <p>
+                <span>⭐</span>
+                {imdbRating}
+              </p>
+            </div>
+          </header>
+          <section>
+            <div className="rating">
+              <StarRating maxRating={10} size={24} />
+            </div>
+            <p>
+              <em>{plot}</em>
+            </p>
+            <p>Starring: {actors}</p>
+            <p>Directed by {director}</p>
+          </section>
+        </>
+      )}
+
+      {/* If there's an error - Display error message */}
+      {error && <ErrorMessage error={error} />}
     </div>
   );
 }
