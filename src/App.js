@@ -52,9 +52,11 @@ const average = (arr) =>
 
 // API Key for OMDB
 const KEY = "f52e54eb";
-const query = "Interstellar";
 
 export default function App() {
+  // State for the input value
+  const [query, setQuery] = useState("");
+
   // State variables for movie lists
   const [movies, setMovies] = useState(tempMovieData);
   const [watched, setWatched] = useState(tempWatchedData);
@@ -70,6 +72,7 @@ export default function App() {
     async function fetchMovies() {
       try {
         setIsLoading(true); // Enable loading animation
+        setError(""); // Resetting the error
 
         // Getting the data from API
         const res = await fetch(
@@ -98,14 +101,22 @@ export default function App() {
         setIsLoading(false); // Disable loading animation
       }
     }
+
+    // If query is empty or has less that 3 characters, set movies and error to empty and return the function
+    if (query.length < 3) {
+      setMovies([]);
+      setError("");
+      return;
+    }
+
     fetchMovies();
-  }, []);
+  }, [query]);
 
   // Main component tree
   return (
     <>
       <NavBar>
-        <Search />
+        <Search query={query} setQuery={setQuery} />
         <NumResults movies={movies} />
       </NavBar>
       <Main>
@@ -134,10 +145,10 @@ function Loader() {
 }
 
 // Loader component that displays an error message if with passed text
-function ErrorMessage({ message }) {
+function ErrorMessage({ error }) {
   return (
     <p className="error">
-      <span>⛔</span> message
+      <span>⛔</span> {error}
     </p>
   );
 }
@@ -163,10 +174,7 @@ function Logo() {
 }
 
 // Search component that displays the searchbar
-function Search() {
-  // State for the input value
-  const [query, setQuery] = useState("");
-
+function Search({ query, setQuery }) {
   // Returns controlled input element
   return (
     <input
