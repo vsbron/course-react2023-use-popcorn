@@ -54,18 +54,23 @@ const average = (arr) =>
 const KEY = "f52e54eb";
 
 export default function App() {
-  // State for the input value
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(""); // State for the input value
+  const [movies, setMovies] = useState(tempMovieData); // State variable for searched movie lists
+  const [watched, setWatched] = useState(tempWatchedData); // State variable for watched movie lists
+  const [isLoading, setIsLoading] = useState(false); // State for loading animation
+  const [error, setError] = useState(""); // State for fetching error
+  const [selectedId, setSelectedId] = useState(null); // State for selected movie from search results
 
-  // State variables for movie lists
-  const [movies, setMovies] = useState(tempMovieData);
-  const [watched, setWatched] = useState(tempWatchedData);
+  // Handle function that displays selected movie
+  function handleSelectMovie(id) {
+    // Checkes whether selected ID is the one in the state, if so, sets it to null
+    setSelectedId((selectedId) => (id === selectedId ? null : id));
+  }
 
-  // State for loading animation
-  const [isLoading, setIsLoading] = useState(false);
-
-  // State for fetching error
-  const [error, setError] = useState("");
+  // Handle function that clears selected movie
+  function handleCloseMovie() {
+    setSelectedId(null);
+  }
 
   // useEffect hook that fetches the movie search results after initial render
   useEffect(() => {
@@ -125,14 +130,25 @@ export default function App() {
           {isLoading && <Loader />}
 
           {/* If data is not loading and there's no error -> Display the movie list */}
-          {!isLoading && !error && <MovieList movies={movies} />}
+          {!isLoading && !error && (
+            <MovieList movies={movies} onSelectMovie={handleSelectMovie} />
+          )}
 
           {/* If there's an error - Display error message */}
           {error && <ErrorMessage error={error} />}
         </Box>
         <Box>
-          <WatchedSummary watched={watched} />
-          <WatchedMovieList watched={watched} />
+          {selectedId ? (
+            <MovieDetails
+              selectedId={selectedId}
+              onCloseMovie={handleCloseMovie}
+            />
+          ) : (
+            <>
+              <WatchedSummary watched={watched} />
+              <WatchedMovieList watched={watched} />
+            </>
+          )}
         </Box>
       </Main>
     </>
@@ -217,20 +233,21 @@ function Box({ children }) {
 }
 
 // MovieList component that lists all the found movies from the state
-function MovieList({ movies }) {
+function MovieList({ movies, onSelectMovie }) {
   return (
-    <ul className="list">
+    <ul className="list list-movies">
       {movies?.map((movie) => (
-        <Movie movie={movie} key={movie.imdbID} />
+        <Movie movie={movie} key={movie.imdbID} onSelectMovie={onSelectMovie} />
       ))}
     </ul>
   );
 }
 
 // Movie component that writes down all the movie details as list item in search results area
-function Movie({ movie }) {
+function Movie({ movie, onSelectMovie }) {
   return (
-    <li>
+    // Adding handler function that will update the selected movie id
+    <li onClick={() => onSelectMovie(movie.imdbID)}>
       <img src={movie.Poster} alt={`${movie.Title} poster`} />
       <h3>{movie.Title}</h3>
       <div>
@@ -240,6 +257,19 @@ function Movie({ movie }) {
         </p>
       </div>
     </li>
+  );
+}
+
+// Movie details component that lists all the info about the selected movie
+function MovieDetails({ selectedId, onCloseMovie }) {
+  return (
+    <div className="details">
+      {/* Button that resets the selected movie ID */}
+      <button className="btn-back" onClick={onCloseMovie}>
+        &larr;
+      </button>
+      {selectedId}
+    </div>
   );
 }
 
