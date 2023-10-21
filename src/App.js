@@ -85,14 +85,18 @@ export default function App() {
 
   // useEffect hook that fetches the movie search results after initial render
   useEffect(() => {
+    // Creating the abort controller (Browser API) to cancel the fetching
+    const controller = new AbortController();
+
     async function fetchMovies() {
       try {
         setIsLoading(true); // Enable loading animation
         setError(""); // Resetting the error
 
-        // Getting the data from API
+        // Getting the data from API, passing also the signal from the controller
         const res = await fetch(
-          `https://www.omdbapi.com/?apikey=${KEY}&s=${query}`
+          `https://www.omdbapi.com/?apikey=${KEY}&s=${query}`,
+          { signal: controller.signal }
         );
 
         // Checking if we got a response, throwing error if not
@@ -110,7 +114,8 @@ export default function App() {
 
         // Catching errors
       } catch (err) {
-        setError(err.message);
+        // Checking whether error is not caused by cancelling the fetch
+        err.name !== "AbortError" && setError(err.message);
 
         // Code that executes at the end of fetching with either result
       } finally {
@@ -127,6 +132,11 @@ export default function App() {
 
     // Calling the function
     fetchMovies();
+
+    // The cleanup function - cancelling the fetch
+    return function () {
+      controller.abort();
+    };
 
     // Passing the query to the dependency array
   }, [query]);
@@ -373,6 +383,20 @@ function MovieDetails({
 
     // Passing the selectedId to the dependency array
   }, [selectedId]);
+
+  // useEffect for changing the document title to the movie title
+  useEffect(() => {
+    if (!title) return; // Guard clause
+    document.title = `Movie | ${title}`;
+
+    // Cleanup function
+    return function () {
+      // Changing the document title to the default one
+      document.title = "usePopcorn App";
+    };
+  }, [title]);
+
+  // Returned JSX
   return (
     <div className="details">
       {/* If data is loading -> Display loader */}
@@ -406,7 +430,7 @@ function MovieDetails({
                 // If so, display the message
                 <p>
                   You have rated this movie with {watchedUserRating}{" "}
-                  <span>⭐</span>
+                  <span>🌟</span>
                 </p>
               ) : (
                 // If not, display the Star Rating component
@@ -457,11 +481,11 @@ function WatchedSummary({ watched }) {
         </p>
         <p>
           <span>⭐️</span>
-          <span>{avgImdbRating.toFixed(2)}</span>
+          <span>{avgImdbRating.toFixed(1)}</span>
         </p>
         <p>
           <span>🌟</span>
-          <span>{avgUserRating.toFixed(2)}</span>
+          <span>{avgUserRating.toFixed(1)}</span>
         </p>
         <p>
           <span>⏳</span>
