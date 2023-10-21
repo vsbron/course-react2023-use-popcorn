@@ -130,6 +130,9 @@ export default function App() {
       return;
     }
 
+    // Clearing the current selected movie
+    handleCloseMovie();
+
     // Calling the function
     fetchMovies();
 
@@ -340,6 +343,21 @@ function MovieDetails({
     onAddWatched(newWatchedMovie); // Add the movie to the watched movie list
     onCloseMovie(); // Close the movie details
   }
+
+  // useEffect that adds event listener for a Escape key press once the component is mounted
+  useEffect(() => {
+    // Creating callback function separately (so we can remove the event listener later)
+    function callback(e) {
+      e.code === "Escape" && onCloseMovie();
+    }
+
+    document.addEventListener("keydown", callback); // Adding the event listener on keydown effect
+
+    // The Cleanup function
+    return function () {
+      document.removeEventListener("keydown", callback); // Removing the event listener
+    };
+  }, [onCloseMovie]);
 
   // useEffect that is fetching the selected movie details
   useEffect(() => {
