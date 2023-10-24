@@ -2,7 +2,6 @@
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
-
 // Watched Summary conponent that displays the legend for the watched movie list
 export default function WatchedSummary({ watched }) {
   // Average variables from the various data from movie state variable
@@ -28,7 +27,7 @@ export default function WatchedSummary({ watched }) {
         </p>
         <p>
           <span>⏳</span>
-          <span>{avgRuntime} min</span>
+          <span>{avgRuntime.toFixed(0)} min</span>
         </p>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import {KEY, URL} from "./helper"
+import { KEY, URL } from "./helper";
 import ErrorMessage from "./ErrorMessage";
 import Loader from "./Loader";
 import StarRating from "./StarRating";
@@ -63,7 +63,8 @@ export default function MovieDetails({
       e.code === "Escape" && onCloseMovie();
     }
 
-    document.addEventListener("keydown", callback); // Adding the event listener on keydown effect
+    // Adding the event listener on keydown effect
+    document.addEventListener("keydown", callback);
 
     // The Cleanup function
     return function () {
@@ -79,9 +80,7 @@ export default function MovieDetails({
         setError(""); // Resetting the error
 
         // Getting the movie data from API
-        const res = await fetch(
-          `${URL}?apikey=${KEY}&i=${selectedId}`
-        );
+        const res = await fetch(`${URL}?apikey=${KEY}&i=${selectedId}`);
 
         // Checking if we got a response, throwing error if not
         if (!res.ok)

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import {KEY, URL} from "./helper"
+import { KEY, URL } from "./helper";
 import ErrorMessage from "./ErrorMessage";
 import Loader from "./Loader";
 import MovieList from "./MovieList";
@@ -10,14 +10,20 @@ import Search from "./Search";
 import WatchedMovieList from "./WatchedMovieList";
 import WatchedSummary from "./WatchedSummary";
 
-
 export default function App() {
   const [query, setQuery] = useState(""); // State for the input value
   const [movies, setMovies] = useState([]); // State variable for searched movie list
-  const [watched, setWatched] = useState([]); // State variable for watched movie list
   const [isLoading, setIsLoading] = useState(false); // State for loading animation
   const [error, setError] = useState(""); // State for fetching error
   const [selectedId, setSelectedId] = useState(null); // State for selected movie from search results
+
+  // Initializing state and passing a callback function into it instead of the value that will be executed only once on the initial render
+  const [watched, setWatched] = useState(() => {
+    // Here, we're getting the watched movie list from the local storage
+    const storedValue = localStorage.getItem("watched");
+    // And return the parsed JSON object (return MUST be included)
+    return JSON.parse(storedValue);
+  }); // This callback funxtion needs to be pure function and cannot receive any arguments
 
   // Handle function that displays selected movie
   function handleSelectMovie(id) {
@@ -40,6 +46,11 @@ export default function App() {
     setWatched((watched) => watched.filter((movie) => movie.imdbID !== id));
   }
 
+  // useEffect that stores a new watched array to the local storage each time the list is updated
+  useEffect(() => {
+    localStorage.setItem("watched", JSON.stringify(watched));
+  }, [watched]); // The current watched movie list in the dependency array
+
   // useEffect hook that fetches the movie search results after initial render
   useEffect(() => {
     // Creating the abort controller (Browser API) to cancel the fetching
@@ -51,10 +62,9 @@ export default function App() {
         setError(""); // Resetting the error
 
         // Getting the data from API, passing also the signal from the controller
-        const res = await fetch(
-          `${URL}?apikey=${KEY}&s=${query}`,
-          { signal: controller.signal }
-        );
+        const res = await fetch(`${URL}?apikey=${KEY}&s=${query}`, {
+          signal: controller.signal,
+        });
 
         // Checking if we got a response, throwing error if not
         if (!res.ok)
