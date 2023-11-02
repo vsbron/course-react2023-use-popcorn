@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { KEY, URL } from "./helper";
 import ErrorMessage from "./ErrorMessage";
 import Loader from "./Loader";
@@ -15,6 +15,14 @@ export default function MovieDetails({
   const [isLoading, setIsLoading] = useState(false); // State for loading animation
   const [error, setError] = useState(""); // State for fetching error
   const [userRating, setUserRating] = useState(""); // State for user rating from Star Rating component
+
+  const countRef = useRef(0); // Reference for changing rating count
+
+  // Each time userRating changes, the ref gets incremented by one
+  // Not counting the initial render, because there's no userRating yet
+  useEffect(() => {
+    if (userRating) countRef.current++;
+  }, [userRating]);
 
   // Checking whether selected movie was already rated by user using filter method
   const isWatched = watchedMovies.filter(
@@ -50,6 +58,7 @@ export default function MovieDetails({
       imdbRating: Number(imdbRating),
       runtime: Number(runtime.split(" ").at(0)),
       userRating,
+      countRatingDecisions: countRef.current, // Storing the ref with rating change times
     };
 
     onAddWatched(newWatchedMovie); // Add the movie to the watched movie list

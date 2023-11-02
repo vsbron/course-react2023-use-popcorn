@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { KEY, URL } from "./helper";
 import ErrorMessage from "./ErrorMessage";
 import Loader from "./Loader";
 import MovieList from "./MovieList";
@@ -9,13 +8,14 @@ import NumResults from "./NumResults";
 import Search from "./Search";
 import WatchedMovieList from "./WatchedMovieList";
 import WatchedSummary from "./WatchedSummary";
+import { useMovies } from "./useMovies";
 
 export default function App() {
   const [query, setQuery] = useState(""); // State for the input value
-  const [movies, setMovies] = useState([]); // State variable for searched movie list
-  const [isLoading, setIsLoading] = useState(false); // State for loading animation
-  const [error, setError] = useState(""); // State for fetching error
   const [selectedId, setSelectedId] = useState(null); // State for selected movie from search results
+
+  // Custom hook from another file that establishes fetch request and gets the data
+  const { movies, isLoading, error } = useMovies(query);
 
   // Initializing state and passing a callback function into it instead of the value that will be executed only once on the initial render
   const [watched, setWatched] = useState(() => {
@@ -50,66 +50,6 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem("watched", JSON.stringify(watched));
   }, [watched]); // The current watched movie list in the dependency array
-
-  // useEffect hook that fetches the movie search results after initial render
-  useEffect(() => {
-    // Creating the abort controller (Browser API) to cancel the fetching
-    const controller = new AbortController();
-
-    async function fetchMovies() {
-      try {
-        setIsLoading(true); // Enable loading animation
-        setError(""); // Resetting the error
-
-        // Getting the data from API, passing also the signal from the controller
-        const res = await fetch(`${URL}?apikey=${KEY}&s=${query}`, {
-          signal: controller.signal,
-        });
-
-        // Checking if we got a response, throwing error if not
-        if (!res.ok)
-          throw new Error("Something went wrong with fetching movies");
-
-        // Converting the received data to json
-        const data = await res.json();
-
-        // Checking whether there are movies returned, throwing error if not
-        if (data.Response === "False") throw new Error("Movie not found!");
-
-        // Setting the movies state array
-        setMovies(data.Search);
-
-        // Catching errors
-      } catch (err) {
-        // Checking whether error is not caused by cancelling the fetch
-        err.name !== "AbortError" && setError(err.message);
-
-        // Code that executes at the end of fetching with either result
-      } finally {
-        setIsLoading(false); // Disable loading animation
-      }
-    }
-
-    // If query is empty or has less that 3 characters, set movies and error to empty and return the function
-    if (query.length < 3) {
-      setMovies([]);
-      setError("");
-      return;
-    }
-
-    // Clearing the current selected movie
-    handleCloseMovie();
-
-    // Calling the function
-    fetchMovies();
-
-    // The cleanup function - cancelling the fetch
-    return function () {
-      controller.abort();
-    };
-
-    // Passing the query to the dependency array
-  }, [query]);
 
   // Main component tree
   return (
