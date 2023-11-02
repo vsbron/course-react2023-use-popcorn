@@ -3,6 +3,7 @@ import { KEY, URL } from "./helper";
 import ErrorMessage from "./ErrorMessage";
 import Loader from "./Loader";
 import StarRating from "./StarRating";
+import { useKey } from "./customHooks/useKey";
 
 // Movie details component that lists all the info about the selected movie
 export default function MovieDetails({
@@ -11,18 +12,14 @@ export default function MovieDetails({
   onAddWatched,
   watchedMovies,
 }) {
+  /* STATE */
   const [movie, setMovie] = useState({}); // State for the selected movie
   const [isLoading, setIsLoading] = useState(false); // State for loading animation
   const [error, setError] = useState(""); // State for fetching error
   const [userRating, setUserRating] = useState(""); // State for user rating from Star Rating component
 
-  const countRef = useRef(0); // Reference for changing rating count
-
-  // Each time userRating changes, the ref gets incremented by one
-  // Not counting the initial render, because there's no userRating yet
-  useEffect(() => {
-    if (userRating) countRef.current++;
-  }, [userRating]);
+  /* CUSTOM HOOKS */
+  useKey("Escape", onCloseMovie);
 
   // Checking whether selected movie was already rated by user using filter method
   const isWatched = watchedMovies.filter(
@@ -48,7 +45,8 @@ export default function MovieDetails({
     Genre: genre,
   } = movie;
 
-  // Handle function of adding movie to the wathed movie list
+  /* HANDLER FUNCTIONS */
+  // Handler function of adding movie to the wathed movie list
   function handleAdd() {
     const newWatchedMovie = {
       imdbID: selectedId,
@@ -65,21 +63,15 @@ export default function MovieDetails({
     onCloseMovie(); // Close the movie details
   }
 
-  // useEffect that adds event listener for a Escape key press once the component is mounted
+  /* USE REFS */
+  const countRef = useRef(0); // Reference for changing rating count
+
+  /* USE EFFECTS */
+  // Each time userRating changes, the ref gets incremented by one
+  // Not counting the initial render, because there's no userRating yet
   useEffect(() => {
-    // Creating callback function separately (so we can remove the event listener later)
-    function callback(e) {
-      e.code === "Escape" && onCloseMovie();
-    }
-
-    // Adding the event listener on keydown effect
-    document.addEventListener("keydown", callback);
-
-    // The Cleanup function
-    return function () {
-      document.removeEventListener("keydown", callback); // Removing the event listener
-    };
-  }, [onCloseMovie]);
+    if (userRating) countRef.current++;
+  }, [userRating]);
 
   // useEffect that is fetching the selected movie details
   useEffect(() => {
