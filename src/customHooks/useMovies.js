@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { KEY, URL } from "./helper";
+import { KEY, URL } from "../helper";
 
 // custom hook that recevies the query
 export function useMovies(query) {
